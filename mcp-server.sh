@@ -17,6 +17,108 @@ log_request() {
     echo "$(date '+%Y/%m/%d %H:%M:%S.%N' | cut -c1-26) $*" >> "$LOG_FILE"
 }
 
+# Function to create a new tool
+create_new_tool() {
+    local tool_name="$1"
+    local tool_description="$2"
+    local tool_parameters="$3"
+
+    # Create the file path
+    local tool_file="$TOOLS_DIR/${tool_name}.tool.sh"
+
+    # Check if the file already exists
+    if [ -f "$tool_file" ]; then
+        echo "Error: Tool '$tool_name' already exists at $tool_file"
+        return 1
+    fi
+
+    # Create function name (remove any non-alphanumeric characters and append _impl)
+    local function_name="${tool_name//[^a-zA-Z0-9_]/_}_impl"
+
+    # Create parameter variables for the implementation function
+    local param_vars=""
+    local param_assignments=""
+    local counter=1
+
+    IFS=',' read -ra param_array <<< "$tool_parameters"
+    for param in "${param_array[@]}"; do
+        # Parse parameter name and type (name:type format)
+        local param_name=${param%%:*}
+        local param_type=${param#*:}
+
+        if [ $counter -gt 1 ]; then
+            param_vars="$param_vars, "
+        fi
+        param_vars="$param_vars\$$counter"
+
+        param_assignments="$param_assignments
+    local $param_name=\$$counter"
+
+        counter=$((counter + 1))
+    done
+
+    # Create the tool file
+    cat > "$tool_file" << EOF
+#!/usr/bin/env bash
+
+# $tool_description implementation
+
+# $tool_name function
+$function_name() {$param_assignments
+
+    # Implement your tool logic here
+    # It is only possible to use one "echo" at the end of the function
+    echo "Tool '$tool_name' was called with parameters: $param_vars"
+}
+
+# Register the tool with the server
+register_tool \\
+    "$tool_name" \\
+    "$tool_description" \\
+    "$tool_parameters" \\
+    "$function_name"
+EOF
+
+    # Make the file executable
+    chmod +x "$tool_file"
+
+    echo "Successfully created new tool: $tool_file"
+    return 0
+}
+
+# Parse command line arguments
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --add-tool)
+                if [[ $# -lt 4 ]]; then
+                    echo "Error: --add-tool requires NAME, DESCRIPTION, and PARAMETERS arguments"
+                    echo "Usage: $0 --add-tool NAME DESCRIPTION PARAMETERS"
+                    echo "Example: $0 --add-tool calculator \"A simple calculator\" \"num1:int,num2:int\""
+                    exit 1
+                fi
+                create_new_tool "$2" "$3" "$4"
+                exit $?
+                ;;
+            --help|-h)
+                echo "Usage: $0 [OPTIONS]"
+                echo "Options:"
+                echo "  --add-tool NAME DESCRIPTION PARAMETERS   Create a new tool"
+                echo "  --help, -h                               Show this help message"
+                echo ""
+                echo "Without options, the MCP server will start normally."
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1"
+                echo "Use --help for usage information"
+                exit 1
+                ;;
+        esac
+        shift
+    done
+}
+
 # Tool registry
 declare -A TOOLS
 declare -A TOOL_DESCRIPTIONS
@@ -135,6 +237,9 @@ execute_tool() {
 
 # Main server loop
 main() {
+    # Parse command-line arguments if any
+    parse_arguments "$@"
+
     echo "Starting MCP Server: $APP_NAME" >> "$LOG_FILE"
 
     # Load all tools
@@ -210,4 +315,4 @@ main() {
 }
 
 # Run the server
-main
+main "$@"
