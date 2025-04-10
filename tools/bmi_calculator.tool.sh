@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # BMI Calculator tool implementation
 
@@ -6,7 +6,7 @@
 calculate_bmi_impl() {
     local weight_kg=$1
     local height_m=$2
-    
+
     # Use bc for floating point calculation
     local bmi=$(echo "scale=2; $weight_kg / ($height_m * $height_m)" | bc)
     echo "BMI calculation result: $bmi"

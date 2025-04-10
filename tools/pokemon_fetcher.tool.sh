@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Pokemon information fetcher tool implementation
 
@@ -28,7 +28,7 @@ fetch_pokemon_impl() {
         # If jq is not available, just return the raw JSON
         output="Fetching data for Pokemon: $pokemon_name\n$pokemon_data"
     fi
-    
+
     # Output everything with a single echo statement
     echo "$output"
 }
