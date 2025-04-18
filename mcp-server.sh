@@ -14,7 +14,7 @@ TOOLS_DIR="$SCRIPT_DIR/tools"
 
 # Logging function
 log_request() {
-    echo "$(date '+%Y/%m/%d %H:%M:%S.%N' | cut -c1-26) $*" >> "$LOG_FILE"
+    echo "$(date '+%Y/%m/%d %H:%M:%S.%N' | cut -c1-26) $*" >> "$SCRIPT_DIR/$LOG_FILE"
 }
 
 # Function to create a new tool
