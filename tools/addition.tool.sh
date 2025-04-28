@@ -9,7 +9,7 @@ addition_impl() {
 
     # Calculate sum
     local sum=$((num1 + num2))
-    echo "sum of two numbers is $sum"
+    echo -n "sum of two numbers is $sum" | jq -Rsa .
 }
 
 # Register the tool with the server

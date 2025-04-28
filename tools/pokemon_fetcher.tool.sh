@@ -30,7 +30,7 @@ fetch_pokemon_impl() {
     fi
 
     # Output everything with a single echo statement
-    echo "$output"
+    echo -n $output | jq -Rsa .
 }
 
 # Register the tool with the server

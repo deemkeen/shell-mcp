@@ -232,7 +232,7 @@ execute_tool() {
     result=$($implementation "${args[@]}")
 
     # Return result in the required format
-    echo "{\"content\":[{\"type\":\"text\",\"text\":\"\n $result\"}],\"isError\":false}"
+    echo "{\"content\":[{\"type\":\"text\",\"text\":"$result"}],\"isError\":false}"
 }
 
 # Main server loop
@@ -296,6 +296,7 @@ main() {
 
             if [[ -v TOOLS["$tool_name"] ]]; then
                 result=$(execute_tool "$tool_name" "$arguments")
+                log_request $result
                 response="{\"jsonrpc\":\"2.0\",\"id\":$id,\"result\":$result}"
             else
                 response="{\"jsonrpc\":\"2.0\",\"id\":$id,\"error\":{\"code\":-32601,\"message\":\"Tool not found: $tool_name\"}}"

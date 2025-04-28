@@ -9,7 +9,7 @@ calculate_bmi_impl() {
 
     # Use bc for floating point calculation
     local bmi=$(echo "scale=2; $weight_kg / ($height_m * $height_m)" | bc)
-    echo "BMI calculation result: $bmi"
+    echo "BMI calculation result: $bmi" | jq -Rsa .
 }
 
 # Register the tool with the server
