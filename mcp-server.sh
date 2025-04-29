@@ -6,15 +6,15 @@
 APP_NAME="Shell MCP"
 SERVER_VERSION="1.0.0"
 PROTOCOL_VERSION="2024-11-05"
-LOG_FILE="mcp_server.log"
 
 # Get script directory for relative paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TOOLS_DIR="$SCRIPT_DIR/tools"
+LOG_FILE="$SCRIPT_DIR/mcp_server.log"
 
 # Logging function
 log_request() {
-    echo "$(date '+%Y/%m/%d %H:%M:%S.%N' | cut -c1-26) $*" >> "$SCRIPT_DIR/$LOG_FILE"
+    echo "$(date '+%Y/%m/%d %H:%M:%S.%N' | cut -c1-26) $*" >> "$LOG_FILE"
 }
 
 # Function to create a new tool
@@ -237,6 +237,10 @@ execute_tool() {
 
 # Main server loop
 main() {
+
+    local temp_dir=$(mktemp -d)
+    cd "${temp_dir}"
+
     # Parse command-line arguments if any
     parse_arguments "$@"
 
@@ -296,7 +300,6 @@ main() {
 
             if [[ -v TOOLS["$tool_name"] ]]; then
                 result=$(execute_tool "$tool_name" "$arguments")
-                log_request $result
                 response="{\"jsonrpc\":\"2.0\",\"id\":$id,\"result\":$result}"
             else
                 response="{\"jsonrpc\":\"2.0\",\"id\":$id,\"error\":{\"code\":-32601,\"message\":\"Tool not found: $tool_name\"}}"
